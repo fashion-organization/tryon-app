@@ -257,6 +257,21 @@ The expected time on the waiting screen is a guess per provider (`lib/tryon/quer
 ### Check (the step 1.8 "done when")
 On a phone: product → Try it on → result, and a failed try-on shows a helpful message. Checked locally at phone size with the mock on 2026-11-25 (including the failure screen via `TRYON_MOCK_FAIL=PoseError`). Still to do on a real phone once deployed.
 
+## Step 1.9: size suggestion
+
+`lib/sizing/suggest.ts` turns the user's chest, waist and hips (from **Account**) and the product's size chart into a suggested size and a one-sentence reason, in the user's units. No AI, just the numbers:
+- **Each measurement:** it picks the size whose range contains it; if two sizes overlap, the larger one; if it falls in the gap between two sizes, the larger one.
+- **The suggestion:** the largest size any measurement needs, so nothing is tight. If that size is roomier for another measurement, the reason says "it may be loose at the …".
+- **Below the smallest size:** the smallest size is suggested. **Above the largest:** no size, and the reason says so.
+- **Partial measurements:** only the ones the chart uses count; any missing ones are named ("Add your hips for a better match").
+
+12 unit tests (`npm test`).
+
+It shows on the product page and the try-on result page:
+- signed out: a prompt to sign in;
+- no measurements: "Add your chest and waist" (only what this item's chart uses), linking to **Account**;
+- with measurements: the suggestion, with its row highlighted in the size chart.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

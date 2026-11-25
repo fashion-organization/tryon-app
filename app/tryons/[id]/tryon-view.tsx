@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { FormMessage } from "@/components/auth/form-parts";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { JobView } from "@/lib/tryon/jobs";
@@ -12,7 +12,13 @@ import { CompareSlider } from "./compare-slider";
 
 const POLL_MS = 2500;
 
-export function TryOnView({ job: initial, expectedSeconds, photoUrl, product }: TryOnDetail) {
+export function TryOnView({
+  job: initial,
+  expectedSeconds,
+  photoUrl,
+  product,
+  sizeHelp,
+}: TryOnDetail & { sizeHelp: ReactNode }) {
   const [job, setJob] = useState<JobView>(initial);
 
   // Ask the server every 2.5 seconds while the try-on runs.
@@ -84,6 +90,7 @@ export function TryOnView({ job: initial, expectedSeconds, photoUrl, product }: 
             An AI-generated preview of the look. Colours and fit may differ from the real item.
           </p>
           <Rating jobId={job.id} initial={job.rating} />
+          {sizeHelp}
           <div className="grid gap-2">
             {product.available && product.buyUrl ? (
               <a href={product.buyUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ className: "w-full" })}>

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { buttonVariants } from "@/components/ui/button";
-import { GARMENT_LABELS, type SizeChart, formatPrice, getProduct } from "@/lib/catalog";
-import { CM_PER_INCH } from "@/lib/units";
+import { SizeHelpSection } from "@/components/size-help";
+import { GARMENT_LABELS, formatPrice, getProduct } from "@/lib/catalog";
 import { Gallery } from "./gallery";
 
 export default function ProductPage({ params }: PageProps<"/products/[slug]">) {
@@ -25,11 +25,13 @@ async function Product({ params }: { params: PageProps<"/products/[slug]">["para
   const product = await getProduct((await params).slug);
   if (!product) notFound();
 
+  // minmax(0,1fr) and min-w-0 let wide content (the size chart) scroll inside its box
+  // instead of widening the page on phones.
   return (
-    <div className="grid gap-8 md:grid-cols-2">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-2">
       <Gallery images={product.galleryUrls} name={product.name} />
 
-      <div className="grid content-start gap-5">
+      <div className="grid min-w-0 content-start gap-5">
         <div className="grid gap-1">
           <Link href={`/catalog?type=${product.garmentType}`} className="text-sm text-muted-foreground hover:underline">
             {GARMENT_LABELS[product.garmentType]}
@@ -68,52 +70,10 @@ async function Product({ params }: { params: PageProps<"/products/[slug]">["para
         </div>
         <p className="text-xs text-muted-foreground">You buy on the shop&apos;s own website.</p>
 
-        {product.sizeChart ? <SizeChartTable chart={product.sizeChart} order={product.sizes} /> : null}
+        {product.sizeChart ? (
+          <SizeHelpSection chart={product.sizeChart} order={product.sizes} returnTo={`/products/${product.slug}`} />
+        ) : null}
       </div>
     </div>
-  );
-}
-
-function SizeChartTable({ chart, order }: { chart: SizeChart; order: string[] }) {
-  // The database does not keep key order in JSON, so list sizes in the product's own order.
-  const sizes = [...order.filter((s) => s in chart.sizes), ...Object.keys(chart.sizes).filter((s) => !order.includes(s))];
-  const range = ([min, max]: [number, number]) =>
-    `${min}–${max} cm (${Math.round(min / CM_PER_INCH)}–${Math.round(max / CM_PER_INCH)} in)`;
-  return (
-    <details className="rounded-lg border p-3 text-sm" open>
-      <summary className="cursor-pointer font-medium">Size chart (body measurements)</summary>
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="text-muted-foreground">
-            <tr>
-              <th className="py-1 pr-3 font-normal">Size</th>
-              {chart.measurements.map((m) => (
-                <th key={m} className="py-1 pr-3 font-normal capitalize">
-                  {m}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sizes.map((size) => [size, chart.sizes[size]] as const).map(([size, values]) => (
-              <tr key={size} className="border-t">
-                <td className="py-1.5 pr-3 font-medium">{size}</td>
-                {chart.measurements.map((m) => (
-                  <td key={m} className="whitespace-nowrap py-1.5 pr-3">
-                    {values[m] ? range(values[m]) : "–"}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        <Link href="/account" className="underline underline-offset-2">
-          Add your measurements
-        </Link>{" "}
-        and we&apos;ll suggest a size (coming soon).
-      </p>
-    </details>
   );
 }

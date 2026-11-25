@@ -123,6 +123,49 @@ Regenerate the TypeScript types from the linked database:
 npm run db:types
 ```
 
+## Step 1.3: sign-up and sign-in
+
+Pages: `/sign-up`, `/sign-in`, `/forgot-password`, `/reset-password`, `/welcome`, `/account`, plus draft `/terms` and `/privacy`. Email links and Google come back to `/auth/callback`. `proxy.ts` keeps the session fresh and sends signed-out visitors on protected pages to sign-in; each page checks again on the server (`lib/auth/dal.ts`).
+
+Sign-up requires "I am 18 or older" and acceptance of the terms and privacy policy; both are stored in `consents` with the IP address, and `profiles.is_adult_confirmed_at` is set. Someone who signs in with Google is asked the same on `/welcome` before they can use the site.
+
+### Supabase settings (you, once, in the dashboard)
+
+**1. Authentication → URL Configuration**
+- **Site URL:** your production address, e.g. `https://tryon-app.vercel.app`
+- **Redirect URLs**, add all three (without these, email links and Google sign-in fail):
+  - `http://localhost:3000/**`
+  - `https://tryon-app.vercel.app/**` (your production address)
+  - `https://*-YOUR-VERCEL-TEAM.vercel.app/**` (preview deployments; the team part is in any preview URL)
+
+**2. Authentication → Sign In / Providers → Email:** keep **Confirm email** on.
+
+**3. Authentication → Emails → Templates** (recommended: makes email links work even when opened on a different device or browser). Replace the link in two templates:
+- **Confirm signup:**
+  ```html
+  <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Confirm your email</a>
+  ```
+- **Reset password:**
+  ```html
+  <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Choose a new password</a>
+  ```
+
+**4. Email sending.** Supabase's built-in sender is for testing only: a few emails per hour and it may deliver only to your own team's addresses. Before Stage 2 (outside testers), connect a real email service under **Authentication → Emails → SMTP Settings** (for example Resend, which has a free tier).
+
+### Google sign-in (you, about 15 minutes)
+1. In [Google Cloud Console](https://console.cloud.google.com), pick or create a project.
+2. **Google Auth Platform → Branding** (older consoles: "OAuth consent screen"): app name "Virtual try-on", your support email. Audience: **External**. While testing, add your own Google address under **Test users**.
+3. **Clients → Create client** → type **Web application**.
+   - Authorized JavaScript origins: `http://localhost:3000` and your production address.
+   - Authorized redirect URI: `https://bozkxkwxgkkthkyfssmc.supabase.co/auth/v1/callback`
+4. Copy the **Client ID** and **Client secret**.
+5. In Supabase: **Authentication → Sign In / Providers → Google**: turn it on, paste both, save.
+
+The secret stays in Supabase; nothing is added to `.env.local` or Vercel.
+
+### Check (the step 1.3 "done when")
+On the production URL: create an account, confirm by email, sign out, sign in with Google (you land on `/welcome` the first time), and reset a password.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

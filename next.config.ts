@@ -1,8 +1,13 @@
 import type { NextConfig } from "next";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
+  images: {
+    // Only the public product images bucket; private photos are never optimised (signed URLs).
+    remotePatterns: supabaseUrl ? [new URL(`${supabaseUrl}/storage/v1/object/public/product-images/**`)] : [],
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

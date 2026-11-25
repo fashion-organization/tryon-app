@@ -189,6 +189,17 @@ Never paste the key into chat or commit it. Without the key, photos are accepted
 ### Check (the step 1.5 "done when")
 On the live site, with a real iPhone and a real Android phone: open **My photos**, accept the consent, tap **Take a photo**, and see it listed. Then delete it.
 
+## Step 1.6: catalog
+
+`/catalog` lists published products, with tabs for garment type, search by name and sort by newest or price. All of it works through the address bar, without JavaScript. `/products/<slug>` shows the gallery, price, sizes, size chart (cm and inches) and **Buy at shop**; **Try it on** arrives in step 1.7. Product data is public and cached for a few minutes.
+
+The catalog holds 20 **placeholder** products from `npm run seed` ("Sample Shop": drawn garments, `example.com` buy links). The seed is safe to run again. Real products replace them once a brand gives permission (see `F:\Work\DOCS\BRAND-OUTREACH-EMAIL.md`). Placeholder garments are fine for building the pages, but not for judging try-on quality.
+
+Size charts are stored on each product as body measurements in cm:
+```json
+{ "unit": "cm", "measurements": ["chest", "waist"], "sizes": { "M": { "chest": [92, 99], "waist": [76, 83] } } }
+```
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

@@ -7,9 +7,14 @@ export function SiteHeader() {
   return (
     <header className="border-b">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="font-semibold tracking-tight">
-          Virtual try-on
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="font-semibold tracking-tight">
+            Virtual try-on
+          </Link>
+          <Link href="/catalog" className="text-sm text-muted-foreground hover:text-foreground">
+            Shop
+          </Link>
+        </div>
         {/* Reads the session, so it streams in; the rest of the header is static. */}
         <Suspense fallback={<span className="h-8 w-20" />}>
           <UserLink />

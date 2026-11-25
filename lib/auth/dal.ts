@@ -3,6 +3,7 @@ import "server-only";
 import { isIP } from "node:net";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { track } from "@/lib/analytics";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -12,6 +13,9 @@ export type CurrentUser = { id: string; email: string | null };
 
 /** The signed-in user, verified with Supabase, or null. */
 export async function getUser(): Promise<CurrentUser | null> {
+  // The session check compares the token's expiry with the current time, so anything that depends
+  // on the signed-in user is rendered per request, never in a prefetch (Next.js cache components).
+  await connection();
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;

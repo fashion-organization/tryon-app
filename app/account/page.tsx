@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
 import { getProfile } from "@/lib/profile";
 import { displayFromMetric } from "@/lib/units";
+import { DeleteAccount, DownloadData } from "./data-controls";
 import { ProfileForm } from "./profile-form";
 
 export const metadata = { title: "Your account · Virtual try-on" };
@@ -49,6 +50,22 @@ async function Content({ searchParams }: { searchParams: PageProps<"/account">["
           Sign out
         </Button>
       </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DownloadData />
+        </CardContent>
+      </Card>
+      <Card className="border-destructive/40">
+        <CardHeader>
+          <CardTitle>Delete my account</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccount />
+        </CardContent>
+      </Card>
     </>
   );
 }

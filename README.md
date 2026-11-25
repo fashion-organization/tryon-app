@@ -309,6 +309,29 @@ Without `NEXT_PUBLIC_POSTHOG_KEY` nothing is sent; the clicks table works either
 ### Check (the step 1.10 "done when")
 A click appears in the database (Supabase → **Table Editor → buy_clicks**) and in the funnel. Checked locally on 2026-11-26 against a stand-in for PostHog: each event arrived once, in order, and clicks were recorded correctly (signed in, signed out, other people's try-ons not linked, bots ignored). Still to do with the real PostHog account.
 
+## Step 1.11: delete account and download data
+
+Both are on **Account**.
+
+**Download my data** builds a ZIP on the server containing:
+- `README.txt`, explaining each file;
+- profile and measurements, account email, consents (with versions, dates and IP);
+- photo records, including refused ones, and the photos themselves;
+- try-on records (item, status, rating, errors) and the try-on images;
+- buy clicks.
+
+Product photos aren't included; they belong to the shops. The ZIP is stored for a moment in the private `exports` bucket and handed over through a 10-minute download link, because Vercel limits a direct response to about 4.5 MB. Each new export replaces the last, and the daily sweep deletes exports older than a day.
+
+**Delete my account** (type DELETE to confirm) removes:
+1. every file in the user's folders (photos, try-on images, exports);
+2. the sign-in account, which takes every row with it (profile, consents, photos, try-ons) and ends its sessions;
+3. the folders again, in case a try-on image was being saved at that moment.
+
+It then searches every table and bucket for the user's id and reports an error if anything is left. Buy clicks are kept as anonymous counts (the user id is removed). The browser is signed out and shown a confirmation page.
+
+### Check (the step 1.11 "done when")
+After deleting a test account, a database and storage search for its id finds nothing. Checked twice on 2026-11-26 (accounts with photos, a refused photo, a try-on, a rating, a buy click and an export): nothing left in `profiles`, `consents`, `user_photos`, `tryon_jobs`, `buy_clicks` (user id), the three buckets or sign-in, and the old session cookie no longer works.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

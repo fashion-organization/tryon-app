@@ -82,6 +82,47 @@ Note: Vercel's free Hobby plan is for non-commercial use. Moving to a paid plan 
 
 Tell Claude when A-C are done; it will wire up PostHog and check the Sentry wizard's changes.
 
+## Step 1.2: the database
+
+The schema is one migration: [supabase/migrations/20261125044334_initial_schema.sql](supabase/migrations/20261125044334_initial_schema.sql). It creates `profiles`, `consents`, `user_photos`, `products` and `tryon_jobs`, turns on row-level security, and creates the storage buckets `user-photos` and `tryon-results` (private) and `product-images` (public).
+
+Who can do what:
+
+| | Signed-in user (browser) | Server (secret key) |
+|---|---|---|
+| `profiles` | Read and edit their own details. Cannot change `role` or the 18+ confirmation | Everything |
+| `consents` | Read their own | Writes them (records the IP) |
+| `user_photos` | Read their own, choose the primary one | Adds them after moderation, deletes them |
+| `products` | Read published ones (signed-out visitors too). Admins: everything | Everything |
+| `tryon_jobs` | Read their own, rate them | Creates and updates them (they cost money) |
+| Photo and result files | Read files in their own folder (`<user_id>/...`) | Uploads and deletes |
+
+### Apply it (you, once)
+For now one Supabase project, `tryon-prod`, is used everywhere (see [docs/decisions.md](docs/decisions.md)). `.env.local` and all three Vercel environments hold its values.
+
+1. Sign the CLI in to Supabase (opens a browser):
+   ```powershell
+   npx supabase login
+   ```
+2. Link this folder to the project. The project ref is the code in the dashboard address, `supabase.com/dashboard/project/<ref>`. It asks for the database password.
+   ```powershell
+   npx supabase link --project-ref bozkxkwxgkkthkyfssmc
+   ```
+3. Apply the migration. It lists what it will apply and asks to confirm.
+   ```powershell
+   npm run db:push
+   ```
+4. Prove user A cannot read user B's rows or files. This creates two throw-away users and deletes them afterwards. Run it only while the project has no real users:
+   ```powershell
+   npm run test:rls
+   ```
+
+### After every schema change
+Regenerate the TypeScript types from the linked database:
+```powershell
+npm run db:types
+```
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

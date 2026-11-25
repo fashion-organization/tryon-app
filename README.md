@@ -25,10 +25,9 @@ Other commands: `npm run build`, `npm run lint`, `npx tsc --noEmit`.
 | Next.js app, Tailwind, shadcn/ui | Done |
 | `/api/health` returns `{ ok, commit, env, time }` | Done, tested locally |
 | `.env.example`, decision log, Supabase CLI folder (`supabase/`) | Done |
-| Git repository (branch `main`) | Created locally, nothing committed yet |
-| GitHub repository | **You:** step A below |
-| Supabase projects (dev + prod) | **You:** step B below |
-| Vercel hosting | **You:** step C below |
+| GitHub repository | Done (private, branch `main`) |
+| Supabase projects (dev + prod) | Done |
+| Vercel hosting | Done, production `/api/health` verified 2026-11-25 |
 | Sentry and PostHog | After A-C (step D) |
 
 **Step 1.1 is done when** pushing to `main` deploys, and `/api/health` on the production URL shows the latest commit.

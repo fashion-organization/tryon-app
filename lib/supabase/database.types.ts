@@ -145,6 +145,7 @@ export type Database = {
       }
       tryon_jobs: {
         Row: {
+          attempts: number
           cost_cents: number | null
           created_at: string
           error_code: string | null
@@ -160,6 +161,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attempts?: number
           cost_cents?: number | null
           created_at?: string
           error_code?: string | null
@@ -175,6 +177,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attempts?: number
           cost_cents?: number | null
           created_at?: string
           error_code?: string | null
@@ -246,6 +249,20 @@ export type Database = {
     Functions: {
       is_admin: { Args: never; Returns: boolean }
       set_primary_photo: { Args: { photo_id: string }; Returns: undefined }
+      start_tryon_job: {
+        Args: {
+          p_global_cap: number
+          p_photo_id: string
+          p_product_id: string
+          p_provider: string
+          p_user_id: string
+          p_user_limit: number
+        }
+        Returns: {
+          job_id: string
+          outcome: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -200,6 +200,47 @@ Size charts are stored on each product as body measurements in cm:
 { "unit": "cm", "measurements": ["chest", "waist"], "sizes": { "M": { "chest": [92, 99], "waist": [76, 83] } } }
 ```
 
+## Step 1.7: the try-on pipeline
+
+The API behind the try-on (the screens come in step 1.8):
+
+| Call | What it does |
+|---|---|
+| `POST /api/tryon` with `{ photoId, productId }` | Checks sign-in, 18+ and photo consent, that the photo is the user's and ready, and that the product is published. Then, in one locked database call (`start_tryon_job`): returns the earlier result if this photo and product were already done (free, instant), joins a job already running (double clicks), refuses over the daily limits, or creates a job and sends it to the provider. Answers `200 { job }` when finished, `202 { job }` while running. |
+| `GET /api/tryon/<id>` | The job's state. While it runs, asks the provider. When done: downloads the image, checks it with the moderation service, adds the "AI-generated preview" label (and the same words in the image metadata), stores it in `tryon-results/<user>/<job>.jpg` and returns a 1-hour link. A temporary provider error is retried once. |
+| `GET /api/cron/sweep` | Fails jobs stuck for more than 3 minutes. Run daily by Vercel Cron (`vercel.json`); polling and new requests also end stuck jobs, so the daily run is only a backstop. |
+
+Limits: `TRYON_DAILY_FREE_PER_USER` (default 3) new try-ons per user and `TRYON_GLOBAL_DAILY_CAP` (default 100) for the whole site, in any 24 hours. Failed try-ons and results served from the cache don't count. Every failure is shown as one of five messages (`lib/tryon/errors.ts`): photo not usable, item not usable, safety filter, busy, unknown.
+
+Providers (`TRYON_PROVIDER`): `mock` returns your own photo after 5 seconds, free, for development (`TRYON_MOCK_FAIL=PoseError` makes it fail, to try the error screens). `fashn-v1.6` (stable, 1 credit) and `fashn-max` (preview model, "fast" mode, 1 credit) call FASHN. Unset means `mock` on your computer and **off** on the live site.
+
+The label image is made once by `node scripts/make-ai-mark.mjs` (Vercel's servers have no fonts to draw text with).
+
+### FASHN key (you, about 10 minutes, needed for real try-ons)
+1. Go to [app.fashn.ai](https://app.fashn.ai) and sign up.
+2. Open **Billing** (or **Credits**) and buy the smallest pack of API credits. At the time of writing that is about $7.50 for 100 credits; one try-on is 1 credit, and failed try-ons are free.
+3. Open **API** (or **Developer → API keys**) → **Create API key**. Name it `tryon-app`. Copy it; it is shown once.
+4. Add to `.env.local`:
+   ```
+   FASHN_API_KEY=...
+   TRYON_PROVIDER=fashn-v1.6
+   ```
+   Remove `TRYON_PROVIDER` (or set it to `mock`) again when you want free local testing.
+5. In Vercel → **Settings → Environment Variables**, add:
+   - `FASHN_API_KEY`: the key, tick all three environments, mark **Sensitive**.
+   - `TRYON_PROVIDER`: `fashn-v1.6`, **Production** only. (Previews then use the free mock.)
+   - `TRYON_GLOBAL_DAILY_CAP`: `20` for now, **Production**. That caps spending at about $1.50 a day; raise it later.
+   - `CRON_SECRET`: a long random string, **Production**, **Sensitive**. Make one in PowerShell:
+     ```powershell
+     $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+     ```
+6. **Deployments → ⋯ on the latest → Redeploy**.
+
+Never paste the key into chat or commit it.
+
+### Check (the step 1.7 "done when")
+With the real provider: a try-on request from an API client produces a stored result image; the same request again returns at once with no new charge; the 4th new try-on in a day is refused. With the mock provider this was checked on 2026-11-25 (21 checks, including the cache, the limit, the retry and the label).
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

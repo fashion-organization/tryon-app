@@ -105,6 +105,12 @@ try {
     check("A cannot create a try-on job (costs money)", !!error);
   }
   {
+    const { error } = await A.client.rpc("start_tryon_job", {
+      p_user_id: A.id, p_photo_id: randomUUID(), p_product_id: product.id, p_provider: "mock", p_user_limit: 999, p_global_cap: 999,
+    });
+    check("A cannot start a try-on job past the limits", !!error);
+  }
+  {
     const { data, error } = await A.client.from("tryon_jobs").update({ rating: 1 }).eq("user_id", A.id).select("id");
     check("A can rate own try-on", !error && (data ?? []).length === 1, error?.message);
   }

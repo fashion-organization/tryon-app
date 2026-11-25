@@ -18,4 +18,6 @@ One or two lines each: date, decision, reason. Planning documents live in `F:\Wo
 - 2026-11-25 — Email links use `token_hash` templates so they work on any device; the callback also accepts `?code=` (Google, default templates).
 - 2026-11-25 — Minimum password length 8. Sign-up and reset never reveal whether an email has an account.
 - 2026-11-25 — Terms and privacy pages are short drafts with a version string stored with each consent. A lawyer writes the real ones before Stage 5.
+- 2026-11-25 — Measurements are stored in metric (0.1 precision) and shown in the user's units: height in whole cm or ft/in, weight in 0.1 kg or whole lb, chest/waist/hips in whole cm or half inches. Imperial is the default (US market). Conversions live in `lib/units.ts` with unit tests (`npm test`, vitest).
+- 2026-11-25 — `@types/node` raised to 24 to match the Node version in use (vitest needs it).
 - 2026-11-24 — Sentry and PostHog are wired once their accounts exist, still within step 1.1; the app runs without them.

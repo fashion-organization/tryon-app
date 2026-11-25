@@ -140,7 +140,7 @@ Sign-up requires "I am 18 or older" and acceptance of the terms and privacy poli
 
 **2. Authentication → Sign In / Providers → Email:** keep **Confirm email** on.
 
-**3. Authentication → Emails → Templates** (recommended: makes email links work even when opened on a different device or browser). Replace the link in two templates:
+**3. Authentication → Emails → Templates.** Supabase only allows editing templates once custom SMTP is set up (item 4), so do this together with item 4, before Stage 2. Until then the default templates work, as long as the email link is opened in the same browser that signed up or asked for the reset. After the change, links work on any device. Replace the link in two templates:
 - **Confirm signup:**
   ```html
   <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Confirm your email</a>

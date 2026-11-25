@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireUser } from "@/lib/auth/dal";
 import { signOut } from "@/lib/auth/actions";
+import { getProfile } from "@/lib/profile";
+import { displayFromMetric } from "@/lib/units";
+import { ProfileForm } from "./profile-form";
 
 export const metadata = { title: "Your account · Virtual try-on" };
 
@@ -19,7 +22,7 @@ export default function AccountPage({ searchParams }: PageProps<"/account">) {
 
 async function Content({ searchParams }: { searchParams: PageProps<"/account">["searchParams"] }) {
   const user = await requireUser("/account");
-  const { updated } = await searchParams;
+  const [profile, { updated }] = await Promise.all([getProfile(user.id), searchParams]);
 
   return (
     <>
@@ -30,13 +33,15 @@ async function Content({ searchParams }: { searchParams: PageProps<"/account">["
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle>Signed in</CardTitle>
-          <CardDescription>{user.email}</CardDescription>
+          <CardTitle>Profile</CardTitle>
+          <CardDescription>Signed in as {user.email}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Your profile and measurements will appear here (step 1.4).
-          </p>
+          <ProfileForm
+            initialName={profile.display_name ?? ""}
+            initialUnits={profile.preferred_units}
+            initialDisplay={displayFromMetric(profile, profile.preferred_units)}
+          />
         </CardContent>
       </Card>
       <form action={signOut}>

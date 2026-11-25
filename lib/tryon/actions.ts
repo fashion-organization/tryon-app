@@ -1,5 +1,6 @@
 "use server";
 
+import { track } from "@/lib/analytics";
 import { getUser } from "@/lib/auth/dal";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,5 +21,6 @@ export async function rateTryOn(jobId: string, rating: 1 | -1 | null): Promise<{
     .eq("status", "done")
     .select("id");
   if (error || !data?.length) return { error: "Your rating couldn't be saved. Please try again." };
+  track("tryon_rated", user.id, { rating: rating === 1 ? "up" : rating === -1 ? "down" : "cleared" });
   return {};
 }

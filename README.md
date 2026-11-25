@@ -272,6 +272,43 @@ It shows on the product page and the try-on result page:
 - no measurements: "Add your chest and waist" (only what this item's chart uses), linking to **Account**;
 - with measurements: the suggestion, with its row highlighted in the size chart.
 
+## Step 1.10: buy link and tracking
+
+**Buy at shop** (product page and try-on result) goes to `/go/<product id>?from=product|tryon`. That route:
+- records the click in the `buy_clicks` table: product, user if signed in, and the try-on if the click came from the user's own one;
+- sends the shopper to the product's stored buy link with `utm_source=virtual-tryon&utm_medium=referral&utm_campaign=tryon` added, so shops see the visits in their own analytics.
+
+It only ever redirects to the link stored for that product, so it can't be misused to send people elsewhere. Link-preview bots (Slack, WhatsApp…) and browser prefetches aren't counted, and the route is hidden from search engines.
+
+**Analytics events** go from the server straight to PostHog: `signup`, `photo_uploaded`, `tryon_started`, `tryon_done`, `tryon_failed`, `tryon_rated`, `buy_clicked`.
+- They carry the user's id and a few details (product, provider, seconds, error type); never email, name or photos.
+- They are sent after the page has responded, so they never slow anything down, and they set no cookies.
+- Signed-out clicks get a one-off id and no profile.
+- Every event has an `environment` property (`production`, `preview` or `local`), so test events can be filtered out.
+
+Without `NEXT_PUBLIC_POSTHOG_KEY` nothing is sent; the clicks table works either way.
+
+### PostHog (you, about 15 minutes)
+1. Go to [posthog.com](https://posthog.com) → **Get started – free**. Sign up, and pick **US Cloud** when asked where to store data.
+2. Name the organization and project `tryon-app`. If it asks which products you want, choose **Product analytics**. When it shows code snippets to install, skip them (look for **Skip** or **I'll do this later**): the app sends events from its server.
+3. Copy the project key. It's in **Settings** (gear, bottom-left) → **Project** → **General** → **Project API key**, and starts with `phc_`. This key can only send events, so it's safe to be public.
+4. Add to `.env.local`:
+   ```
+   NEXT_PUBLIC_POSTHOG_KEY=phc_...
+   NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+   ```
+5. Add the same two to Vercel (**Settings → Environment Variables**, all three environments; not Sensitive), then **Deployments → ⋯ → Redeploy**.
+6. On the live site, sign up a new test account, add a photo, try something on, rate it, and click **Buy at shop**.
+7. In PostHog, open **Activity** (or **Events**). The six events should appear within a minute.
+8. Make the funnel:
+   - Open **Product analytics → + New insight → Funnels**.
+   - Steps: `signup` → `photo_uploaded` → `tryon_started` → `tryon_done` → `buy_clicked`.
+   - Under **Filters**, add `environment` = `production`.
+   - **Save** it as "Try-on funnel" and **Add to dashboard** (create one called "Overview").
+
+### Check (the step 1.10 "done when")
+A click appears in the database (Supabase → **Table Editor → buy_clicks**) and in the funnel. Checked locally on 2026-11-26 against a stand-in for PostHog: each event arrived once, in order, and clicks were recorded correctly (signed in, signed out, other people's try-ons not linked, bots ignored). Still to do with the real PostHog account.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

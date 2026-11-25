@@ -64,7 +64,7 @@ export async function signUp(_prev: FormState, formData: FormData): Promise<Form
   // identities and sends no email, so nobody can find out which emails are registered.
   // Only a genuinely new user gets consent rows.
   if (data.user && (data.user.identities?.length ?? 0) > 0) {
-    await recordSignupConsents(data.user.id);
+    await recordSignupConsents(data.user.id, "email");
   }
 
   if (data.session) redirect(next); // email confirmation switched off
@@ -141,6 +141,6 @@ export async function acceptTerms(_prev: FormState, formData: FormData): Promise
   if (formData.get("adult") !== "on") return { error: "You must be 18 or older to use this service." };
   if (formData.get("terms") !== "on") return { error: "Please accept the terms and the privacy policy." };
 
-  if (!(await hasAcceptedTerms(user.id))) await recordSignupConsents(user.id);
+  if (!(await hasAcceptedTerms(user.id))) await recordSignupConsents(user.id, "google");
   redirect(next);
 }

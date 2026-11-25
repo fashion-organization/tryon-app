@@ -93,7 +93,12 @@ export function TryOnView({
           {sizeHelp}
           <div className="grid gap-2">
             {product.available && product.buyUrl ? (
-              <a href={product.buyUrl} target="_blank" rel="noopener noreferrer" className={buttonVariants({ className: "w-full" })}>
+              <a
+                href={`/go/${job.productId}?from=tryon&job=${job.id}`}
+                target="_blank"
+                rel="noopener nofollow"
+                className={buttonVariants({ className: "w-full" })}
+              >
                 Buy at {product.shopName} ↗
               </a>
             ) : (

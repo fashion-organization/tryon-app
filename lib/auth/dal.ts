@@ -3,6 +3,7 @@ import "server-only";
 import { isIP } from "node:net";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { track } from "@/lib/analytics";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { AGE_VERSION, PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legal";
@@ -42,7 +43,7 @@ export async function hasAcceptedTerms(userId: string): Promise<boolean> {
  * Records the 18+, terms and privacy consents with the request's IP address, and marks the
  * profile as adult-confirmed. Server only: the browser cannot write consents itself.
  */
-export async function recordSignupConsents(userId: string): Promise<void> {
+export async function recordSignupConsents(userId: string, method: "email" | "google"): Promise<void> {
   const admin = createAdminClient();
   const ip = await clientIp();
   const rows = [
@@ -58,6 +59,9 @@ export async function recordSignupConsents(userId: string): Promise<void> {
     .update({ is_adult_confirmed_at: new Date().toISOString() })
     .eq("id", userId);
   if (updated.error) throw new Error(`Could not update profile: ${updated.error.message}`);
+
+  // The one place every new account passes through (email sign-up, or /welcome after Google).
+  track("signup", userId, { method });
 }
 
 export async function clientIp(): Promise<string | null> {

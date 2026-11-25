@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      buy_clicks: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          source: string
+          tryon_job_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          source: string
+          tryon_job_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          source?: string
+          tryon_job_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buy_clicks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buy_clicks_tryon_job_id_fkey"
+            columns: ["tryon_job_id"]
+            isOneToOne: false
+            referencedRelation: "tryon_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consents: {
         Row: {
           accepted_at: string

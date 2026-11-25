@@ -1,5 +1,6 @@
 import "server-only";
 
+import { track } from "@/lib/analytics";
 import type { GarmentType } from "@/lib/catalog";
 import { productImageUrl } from "@/lib/catalog";
 import { moderateImage } from "@/lib/moderation";
@@ -102,6 +103,7 @@ export async function startTryOn(userId: string, photoId: string, productId: str
 
   // "created": ask the provider.
   const job = await loadJob(started.job_id!);
+  track("tryon_started", userId, { provider: provider.name, garment_type: product.garment_type });
   await submit(provider, job, { personPath: photo.storage_path, garmentPath: product.tryon_image_path, garmentType: product.garment_type as GarmentType });
   return { ok: true, job: await viewJob(await loadJob(job.id)) };
 }
@@ -144,14 +146,32 @@ async function loadJob(id: string): Promise<JobRow> {
   return data as JobRow;
 }
 
-/** Sets a job's final state, only if it is still open (another request may have finished it). */
+/**
+ * Sets a job's final state, only if it is still open (another request may have finished it).
+ * Only the request that actually closes the job sends the analytics event, so it is counted once.
+ */
 async function finish(jobId: string, fields: { status: "done" | "failed"; error_code?: string; result_path?: string; cost_cents?: number }) {
-  const { error } = await createAdminClient()
+  const { data, error } = await createAdminClient()
     .from("tryon_jobs")
     .update({ ...fields, finished_at: new Date().toISOString() })
     .eq("id", jobId)
-    .in("status", OPEN);
-  if (error) console.error("tryon finish:", error.message);
+    .in("status", OPEN)
+    .select("user_id, provider, created_at, attempts");
+  if (error) return console.error("tryon finish:", error.message);
+  const row = data?.[0];
+  if (!row) return;
+  const seconds = Math.round((Date.now() - new Date(row.created_at).getTime()) / 100) / 10;
+  if (fields.status === "done") {
+    track("tryon_done", row.user_id, { provider: row.provider, seconds, attempts: row.attempts, cost_cents: fields.cost_cents ?? null });
+  } else {
+    track("tryon_failed", row.user_id, {
+      provider: row.provider,
+      seconds,
+      attempts: row.attempts,
+      error_code: fields.error_code ?? null,
+      error_kind: classifyError(fields.error_code),
+    });
+  }
 }
 
 type Inputs = { personPath: string; garmentPath: string; garmentType: GarmentType };

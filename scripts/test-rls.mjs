@@ -111,6 +111,11 @@ try {
     check("A cannot start a try-on job past the limits", !!error);
   }
   {
+    const read = await A.client.from("buy_clicks").select("id").limit(1);
+    const write = await A.client.from("buy_clicks").insert({ product_id: product.id, source: "product" });
+    check("A cannot read or add buy clicks", !!read.error && !!write.error);
+  }
+  {
     const { data, error } = await A.client.from("tryon_jobs").update({ rating: 1 }).eq("user_id", A.id).select("id");
     check("A can rate own try-on", !error && (data ?? []).length === 1, error?.message);
   }

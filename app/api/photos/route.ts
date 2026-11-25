@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { track } from "@/lib/analytics";
 import { getUser } from "@/lib/auth/dal";
 import { moderateImage } from "@/lib/moderation";
 import {
@@ -102,5 +103,6 @@ export async function POST(request: Request) {
       : fail(500, "Your photo couldn't be saved. Please try again.");
   }
 
+  track("photo_uploaded", user.id, { first_photo: (primaries ?? 0) === 0 });
   return Response.json({ id: photoId }, { status: 201, headers: { "Cache-Control": "no-store" } });
 }

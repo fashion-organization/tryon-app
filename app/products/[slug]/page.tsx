@@ -60,9 +60,9 @@ async function Product({ params }: { params: PageProps<"/products/[slug]">["para
             Try it on
           </Link>
           <a
-            href={product.buyUrl}
+            href={`/go/${product.id}?from=product`}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener nofollow"
             className={buttonVariants({ variant: "outline", className: "w-full" })}
           >
             Buy at {product.shopName} ↗

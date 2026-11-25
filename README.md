@@ -166,6 +166,29 @@ The secret stays in Supabase; nothing is added to `.env.local` or Vercel.
 ### Check (the step 1.3 "done when")
 On the production URL: create an account, confirm by email, sign out, sign in with Google (you land on `/welcome` the first time), and reset a password.
 
+## Step 1.5: photo upload
+
+`/photos` shows the body-photo consent first (stored in `consents` as `body_photo`, naming the services that receive photos). Then: take or choose a photo; the browser shrinks it to 2000 px JPEG; `POST /api/photos` re-encodes it on the server (drops GPS and other metadata), checks it with OpenAI's free moderation service, and stores it in the private `user-photos` bucket. Up to 5 photos; one is the main photo; deleting a photo deletes its file and its try-on results.
+
+### OpenAI key for the photo check (you, about 10 minutes)
+The moderation check is free, but OpenAI needs an account and an API key.
+
+1. Go to [platform.openai.com](https://platform.openai.com) and sign up or sign in.
+2. If it asks you to create an organization or project, name it `tryon-app`.
+3. Top-right gear icon → **API keys** (or open [platform.openai.com/api-keys](https://platform.openai.com/api-keys)) → **Create new secret key**.
+   - Name: `tryon-app moderation`. Project: `tryon-app`. Permissions: **All** is fine (or **Restricted** with only *Model capabilities → Write*).
+   - Click **Create**, then **Copy**. It starts with `sk-`. You can't see it again later, so paste it now.
+4. Add it to `.env.local`:
+   ```
+   OPENAI_API_KEY=sk-...
+   ```
+5. Add it to Vercel: **Settings → Environment Variables → Add**: name `OPENAI_API_KEY`, the same value, tick **Production**, **Preview** and **Development**, mark it **Sensitive**, save. Then **Deployments → ⋯ on the latest → Redeploy**.
+
+Never paste the key into chat or commit it. Without the key, photos are accepted unchecked on your computer, and refused on the live site ("We can't check photos right now").
+
+### Check (the step 1.5 "done when")
+On the live site, with a real iPhone and a real Android phone: open **My photos**, accept the consent, tap **Take a photo**, and see it listed. Then delete it.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.

@@ -22,9 +22,14 @@ export function SiteHeader() {
 async function UserLink() {
   const user = await getUser();
   return user ? (
-    <Link href="/account" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-      Account
-    </Link>
+    <nav className="flex gap-1">
+      <Link href="/photos" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+        My photos
+      </Link>
+      <Link href="/account" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+        Account
+      </Link>
+    </nav>
   ) : (
     <Link href="/sign-in" className={buttonVariants({ variant: "outline", size: "sm" })}>
       Sign in

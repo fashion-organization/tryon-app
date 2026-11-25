@@ -60,7 +60,7 @@ export async function recordSignupConsents(userId: string): Promise<void> {
   if (updated.error) throw new Error(`Could not update profile: ${updated.error.message}`);
 }
 
-async function clientIp(): Promise<string | null> {
+export async function clientIp(): Promise<string | null> {
   const h = await headers();
   const candidate = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip")?.trim();
   return candidate && isIP(candidate) ? candidate : null;

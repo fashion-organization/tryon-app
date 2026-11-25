@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Pages that need a signed-in user. This is only a fast first check; every page and
 // action also checks the user itself (lib/auth/dal.ts), because the proxy can be skipped.
-const PROTECTED = ["/account", "/welcome", "/reset-password"];
+const PROTECTED = ["/account", "/photos", "/welcome", "/reset-password"];
 
 /**
  * Runs before every page request: refreshes the Supabase session cookie when it is about

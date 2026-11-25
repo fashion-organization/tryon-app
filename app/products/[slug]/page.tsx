@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { GARMENT_LABELS, type SizeChart, formatPrice, getProduct } from "@/lib/catalog";
 import { CM_PER_INCH } from "@/lib/units";
 import { Gallery } from "./gallery";
@@ -53,10 +53,10 @@ async function Product({ params }: { params: PageProps<"/products/[slug]">["para
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
-          {/* Step 1.7 turns this into the try-on flow. */}
-          <Button disabled className="w-full">
-            Try it on (coming soon)
-          </Button>
+          {/* Signed-out visitors are sent to sign-in and come back here. */}
+          <Link href={`/try/${product.slug}`} className={buttonVariants({ className: "w-full" })}>
+            Try it on
+          </Link>
           <a
             href={product.buyUrl}
             target="_blank"

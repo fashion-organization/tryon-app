@@ -35,4 +35,7 @@ One or two lines each: date, decision, reason. Planning documents live in `F:\Wo
 - 2026-11-25 — One automatic retry, only for errors FASHN calls temporary (busy, pipeline, third-party, rate limit). The retry is claimed in the database first, so two polls at once can't both pay for it.
 - 2026-11-25 — The stuck-job sweep runs daily, not every 5 minutes: Vercel's free Hobby plan allows cron jobs once a day. Polling and new requests also end jobs stuck over 3 minutes, so nothing waits on the cron. Back to every 5 minutes on a paid plan.
 - 2026-11-25 — On the live site try-on is off until `TRYON_PROVIDER` is set, so the free mock (which returns the user's own photo) can never be shown to real users by accident.
+- 2026-11-25 — The try-on start page (`/try/<product>`) shows the photo consent and upload in place, so a first-time user never leaves the flow. Waiting, result and failure are one page (`/tryons/<id>`) that updates itself, so leaving and coming back just works.
+- 2026-11-25 — In the before/after slider the generated image is on the left and the user's photo on the right, so the "AI-generated preview" mark (bottom-left of the result) is always visible on the generated part. The slider uses pointer events on the whole image (iPhone Safari won't drag an invisible range input), with a hidden range input for the keyboard.
+- 2026-11-25 — On phones the header's Account link is an icon, so the header fits on one line at 375 px.
 - 2026-11-24 — Sentry and PostHog are wired once their accounts exist, still within step 1.1; the app runs without them.

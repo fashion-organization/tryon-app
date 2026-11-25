@@ -18,6 +18,7 @@ export type JobView = {
   productId: string;
   createdAt: string;
   finishedAt: string | null;
+  rating: -1 | 1 | null;
   resultUrl?: string; // short-lived link to the marked image
   error?: { kind: TryOnErrorKind; title: string; action: string };
 };
@@ -33,12 +34,13 @@ type JobRow = {
   result_path: string | null;
   error_code: string | null;
   attempts: number;
+  rating: number | null;
   created_at: string;
   finished_at: string | null;
 };
 
 const JOB_COLUMNS =
-  "id, user_id, photo_id, product_id, provider, provider_job_id, status, result_path, error_code, attempts, created_at, finished_at";
+  "id, user_id, photo_id, product_id, provider, provider_job_id, status, result_path, error_code, attempts, rating, created_at, finished_at";
 const MAX_ATTEMPTS = 2; // the first try plus one automatic retry
 const PERSON_URL_SECONDS = 10 * 60;
 const RESULT_URL_SECONDS = 60 * 60;
@@ -305,6 +307,7 @@ async function viewJob(job: JobRow): Promise<JobView> {
     productId: job.product_id,
     createdAt: job.created_at,
     finishedAt: job.finished_at,
+    rating: job.rating === 1 || job.rating === -1 ? job.rating : null,
   };
   if (view.status === "done" && job.result_path) {
     const { data } = await createAdminClient().storage.from(RESULT_BUCKET).createSignedUrl(job.result_path, RESULT_URL_SECONDS);

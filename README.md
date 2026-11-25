@@ -241,6 +241,22 @@ Never paste the key into chat or commit it.
 ### Check (the step 1.7 "done when")
 With the real provider: a try-on request from an API client produces a stored result image; the same request again returns at once with no new charge; the 4th new try-on in a day is refused. With the mock provider this was checked on 2026-11-25 (21 checks, including the cache, the limit, the retry and the label).
 
+## Step 1.8: try-on screens
+
+- **Product page → Try it on** opens `/try/<product>` (signed-out visitors sign in and come back). It shows the photo consent or the photo upload first if needed, then your photos with the main one preselected, how many free try-ons are left today, and whether this photo and item were already tried (then it's free and instant).
+- **`/tryons/<id>`** is one page that changes as the job runs:
+  - waiting: progress messages and bar, the expected time, and a note that it's safe to leave;
+  - result: a before/after slider over your photo (drag anywhere on the image, or use the arrow keys), thumbs up/down, **Buy at shop**, size chart, **Try another item**;
+  - failure: the specific reason and one next step.
+
+  The browser asks for news every 2.5 seconds.
+- **`/tryons`** ("Try-ons" in the header) lists past try-ons, newest first.
+
+The expected time on the waiting screen is a guess per provider (`lib/tryon/queries.ts`) until Stage 0 measures it.
+
+### Check (the step 1.8 "done when")
+On a phone: product → Try it on → result, and a failed try-on shows a helpful message. Checked locally at phone size with the mock on 2026-11-25 (including the failure screen via `TRYON_MOCK_FAIL=PoseError`). Still to do on a real phone once deployed.
+
 ## Rules for this codebase
 - Every database change is a migration file in `supabase/migrations/`.
 - Every environment variable is listed in `.env.example` without its value.
